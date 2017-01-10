@@ -9,8 +9,9 @@ import (
 	"time"
 
 	"github.com/golang/snappy"
-	"github.com/nsqio/nsq/internal/http_api"
-	"github.com/nsqio/nsq/internal/test"
+
+	"github.com/xww/rabbitgo/internal/http_api"
+	"github.com/xww/rabbitgo/internal/test"
 )
 
 func TestStats(t *testing.T) {

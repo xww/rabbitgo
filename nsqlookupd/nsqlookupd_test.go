@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/nsqio/go-nsq"
-	"github.com/nsqio/nsq/internal/clusterinfo"
-	"github.com/nsqio/nsq/internal/http_api"
-	"github.com/nsqio/nsq/internal/test"
+
+	"github.com/xww/rabbitgo/internal/http_api"
+	"github.com/xww/rabbitgo/internal/clusterinfo"
 )
 
 const (

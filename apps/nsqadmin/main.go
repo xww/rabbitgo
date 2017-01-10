@@ -11,9 +11,10 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/mreiferson/go-options"
-	"github.com/nsqio/nsq/internal/app"
-	"github.com/nsqio/nsq/internal/version"
+
 	"github.com/nsqio/nsq/nsqadmin"
+	"github.com/xww/rabbitgo/internal/app"
+	"github.com/xww/rabbitgo/internal/version"
 )
 
 var (

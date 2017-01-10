@@ -16,9 +16,10 @@ import (
 	"time"
 
 	"github.com/nsqio/go-nsq"
-	"github.com/nsqio/nsq/internal/test"
-	"github.com/nsqio/nsq/internal/version"
+
 	"github.com/nsqio/nsq/nsqlookupd"
+	"github.com/xww/rabbitgo/internal/test"
+	"github.com/xww/rabbitgo/internal/version"
 )
 
 type ErrMessage struct {

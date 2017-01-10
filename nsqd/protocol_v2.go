@@ -14,8 +14,8 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/nsqio/nsq/internal/protocol"
-	"github.com/nsqio/nsq/internal/version"
+	"github.com/xww/rabbitgo/internal/protocol"
+	"github.com/xww/rabbitgo/internal/version"
 )
 
 const maxTimeout = time.Hour

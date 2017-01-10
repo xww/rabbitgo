@@ -16,13 +16,13 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/nsqio/nsq/internal/clusterinfo"
-	"github.com/nsqio/nsq/internal/dirlock"
-	"github.com/nsqio/nsq/internal/http_api"
-	"github.com/nsqio/nsq/internal/protocol"
-	"github.com/nsqio/nsq/internal/statsd"
-	"github.com/nsqio/nsq/internal/util"
-	"github.com/nsqio/nsq/internal/version"
+	"github.com/xww/rabbitgo/internal/dirlock"
+	"github.com/xww/rabbitgo/internal/clusterinfo"
+	"github.com/xww/rabbitgo/internal/http_api"
+	"github.com/xww/rabbitgo/internal/statsd"
+	"github.com/xww/rabbitgo/internal/protocol"
+	"github.com/xww/rabbitgo/internal/util"
+	"github.com/xww/rabbitgo/internal/version"
 )
 
 const (

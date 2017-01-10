@@ -12,11 +12,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nsqio/nsq/internal/clusterinfo"
-	"github.com/nsqio/nsq/internal/test"
-	"github.com/nsqio/nsq/internal/version"
-	"github.com/nsqio/nsq/nsqd"
-	"github.com/nsqio/nsq/nsqlookupd"
+
+
+	"github.com/xww/rabbitgo/internal/clusterinfo"
+	"github.com/xww/rabbitgo/internal/test"
+	"github.com/xww/rabbitgo/nsqlookupd"
+	"github.com/xww/rabbitgo/nsqd"
+	"github.com/xww/rabbitgo/internal/version"
 )
 
 type TopicsDoc struct {

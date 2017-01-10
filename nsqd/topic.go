@@ -8,8 +8,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/nsqio/nsq/internal/quantile"
-	"github.com/nsqio/nsq/internal/util"
+	"github.com/xww/rabbitgo/internal/util"
+	"github.com/xww/rabbitgo/internal/quantile"
 )
 
 type Topic struct {

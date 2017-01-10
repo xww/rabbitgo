@@ -13,9 +13,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nsqio/nsq/internal/http_api"
-	"github.com/nsqio/nsq/internal/test"
+
 	"github.com/nsqio/nsq/nsqlookupd"
+	"github.com/xww/rabbitgo/internal/http_api"
+	"github.com/xww/rabbitgo/internal/test"
 )
 
 const (

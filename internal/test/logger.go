@@ -1,8 +1,7 @@
 package test
 
-import (
-	"github.com/nsqio/nsq/internal/app"
-)
+
+import "github.com/xww/rabbitgo/internal/app"
 
 type tbLog interface {
 	Log(...interface{})

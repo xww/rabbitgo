@@ -6,7 +6,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/nsqio/nsq/internal/test"
+	"github.com/xww/rabbitgo/internal/test"
 )
 
 func TestPriorityQueue(t *testing.T) {
