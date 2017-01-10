@@ -24,7 +24,7 @@ func (s Uint64Slice) Less(i, j int) bool {
 	return s[i] < s[j]
 }
 
-func (n *NSQD) statsdLoop() {
+func (n *RABBITGOD) statsdLoop() {
 	var lastMemStats runtime.MemStats
 	var lastStats []TopicStats
 	ticker := time.NewTicker(n.getOpts().StatsdInterval)

@@ -125,7 +125,7 @@ func rabbitgoFlagSet(opts *rabbitgod.Options) *flag.FlagSet {
 	flagSet.Var(&e2eProcessingLatencyPercentiles, "e2e-processing-latency-percentile", "message processing time percentiles (as float (0, 1.0]) to track (can be specified multiple times or comma separated '1.0,0.99,0.95', default none)")
 	flagSet.Duration("e2e-processing-latency-window-time", opts.E2EProcessingLatencyWindowTime, "calculate end to end latency quantiles for this duration of time (ie: 60s would only show quantile calculations from the past 60 seconds)")
 
-	// TLS config
+	/*// TLS config
 	flagSet.String("tls-cert", opts.TLSCert, "path to certificate file")
 	flagSet.String("tls-key", opts.TLSKey, "path to key file")
 	flagSet.String("tls-client-auth-policy", opts.TLSClientAuthPolicy, "client certificate auth policy ('require' or 'require-verify')")
@@ -133,7 +133,7 @@ func rabbitgoFlagSet(opts *rabbitgod.Options) *flag.FlagSet {
 	tlsRequired := tlsRequiredOption(opts.TLSRequired)
 	tlsMinVersion := tlsMinVersionOption(opts.TLSMinVersion)
 	flagSet.Var(&tlsRequired, "tls-required", "require TLS for client connections (true, false, tcp-https)")
-	flagSet.Var(&tlsMinVersion, "tls-min-version", "minimum SSL/TLS version acceptable ('ssl3.0', 'tls1.0', 'tls1.1', or 'tls1.2')")
+	flagSet.Var(&tlsMinVersion, "tls-min-version", "minimum SSL/TLS version acceptable ('ssl3.0', 'tls1.0', 'tls1.1', or 'tls1.2')")*/
 
 	// compression
 	flagSet.Bool("deflate", opts.DeflateEnabled, "enable deflate feature negotiation (client compression)")

@@ -112,7 +112,7 @@ type ChannelsByName struct {
 
 func (c ChannelsByName) Less(i, j int) bool { return c.Channels[i].name < c.Channels[j].name }
 
-func (n *NSQD) GetStats() []TopicStats {
+func (n *RABBITGOD) GetStats() []TopicStats {
 	n.RLock()
 	realTopics := make([]*Topic, 0, len(n.topicMap))
 	for _, t := range n.topicMap {

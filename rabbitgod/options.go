@@ -2,7 +2,7 @@ package rabbitgod
 
 import (
 	"crypto/md5"
-	"crypto/tls"
+	//"crypto/tls"
 	"hash/crc32"
 	"io"
 	"log"
@@ -60,13 +60,13 @@ type Options struct {
 	E2EProcessingLatencyWindowTime  time.Duration `flag:"e2e-processing-latency-window-time"`
 	E2EProcessingLatencyPercentiles []float64     `flag:"e2e-processing-latency-percentile" cfg:"e2e_processing_latency_percentiles"`
 
-	// TLS config
+	/*// TLS config
 	TLSCert             string `flag:"tls-cert"`
 	TLSKey              string `flag:"tls-key"`
 	TLSClientAuthPolicy string `flag:"tls-client-auth-policy"`
 	TLSRootCAFile       string `flag:"tls-root-ca-file"`
 	TLSRequired         int    `flag:"tls-required"`
-	TLSMinVersion       uint16 `flag:"tls-min-version"`
+	TLSMinVersion       uint16 `flag:"tls-min-version"`*/
 
 	// compression
 	DeflateEnabled  bool `flag:"deflate"`
@@ -133,7 +133,7 @@ func NewOptions() *Options {
 		MaxDeflateLevel: 6,
 		SnappyEnabled:   true,
 
-		TLSMinVersion: tls.VersionTLS10,
+		//TLSMinVersion: tls.VersionTLS10,
 
 		Logger: log.New(os.Stderr, "[nsqd] ", log.Ldate|log.Ltime|log.Lmicroseconds),
 	}

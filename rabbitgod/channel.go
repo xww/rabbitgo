@@ -75,15 +75,15 @@ func NewChannel(topicName string, channelName string, ctx *context,
 	c := &Channel{
 		topicName:      topicName,
 		name:           channelName,
-		memoryMsgChan:  make(chan *Message, ctx.nsqd.getOpts().MemQueueSize),
+		memoryMsgChan:  make(chan *Message, ctx.rabbitgod.getOpts().MemQueueSize),
 		clients:        make(map[int64]Consumer),
 		deleteCallback: deleteCallback,
 		ctx:            ctx,
 	}
-	if len(ctx.nsqd.getOpts().E2EProcessingLatencyPercentiles) > 0 {
+	if len(ctx.rabbitgod.getOpts().E2EProcessingLatencyPercentiles) > 0 {
 		c.e2eProcessingLatencyStream = quantile.New(
-			ctx.nsqd.getOpts().E2EProcessingLatencyWindowTime,
-			ctx.nsqd.getOpts().E2EProcessingLatencyPercentiles,
+			ctx.rabbitgod.getOpts().E2EProcessingLatencyWindowTime,
+			ctx.rabbitgod.getOpts().E2EProcessingLatencyPercentiles,
 		)
 	}
 
@@ -96,22 +96,22 @@ func NewChannel(topicName string, channelName string, ctx *context,
 		// backend names, for uniqueness, automatically include the topic...
 		backendName := getBackendName(topicName, channelName)
 		c.backend = newDiskQueue(backendName,
-			ctx.nsqd.getOpts().DataPath,
-			ctx.nsqd.getOpts().MaxBytesPerFile,
+			ctx.rabbitgod.getOpts().DataPath,
+			ctx.rabbitgod.getOpts().MaxBytesPerFile,
 			int32(minValidMsgLength),
-			int32(ctx.nsqd.getOpts().MaxMsgSize)+minValidMsgLength,
-			ctx.nsqd.getOpts().SyncEvery,
-			ctx.nsqd.getOpts().SyncTimeout,
-			ctx.nsqd.getOpts().Logger)
+			int32(ctx.rabbitgod.getOpts().MaxMsgSize)+minValidMsgLength,
+			ctx.rabbitgod.getOpts().SyncEvery,
+			ctx.rabbitgod.getOpts().SyncTimeout,
+			ctx.rabbitgod.getOpts().Logger)
 	}
 
-	c.ctx.nsqd.Notify(c)
+	c.ctx.rabbitgod.Notify(c)
 
 	return c
 }
 
 func (c *Channel) initPQ() {
-	pqSize := int(math.Max(1, float64(c.ctx.nsqd.getOpts().MemQueueSize)/10))
+	pqSize := int(math.Max(1, float64(c.ctx.rabbitgod.getOpts().MemQueueSize)/10))
 
 	c.inFlightMessages = make(map[MessageID]*Message)
 	c.deferredMessages = make(map[MessageID]*pqueue.Item)
@@ -149,13 +149,13 @@ func (c *Channel) exit(deleted bool) error {
 	}
 
 	if deleted {
-		c.ctx.nsqd.logf("CHANNEL(%s): deleting", c.name)
+		c.ctx.rabbitgod.logf("CHANNEL(%s): deleting", c.name)
 
 		// since we are explicitly deleting a channel (not just at system exit time)
 		// de-register this from the lookupd
-		c.ctx.nsqd.Notify(c)
+		c.ctx.rabbitgod.Notify(c)
 	} else {
-		c.ctx.nsqd.logf("CHANNEL(%s): closing", c.name)
+		c.ctx.rabbitgod.logf("CHANNEL(%s): closing", c.name)
 	}
 
 	// this forceably closes client connections
@@ -203,7 +203,7 @@ func (c *Channel) flush() error {
 	var msgBuf bytes.Buffer
 
 	if len(c.memoryMsgChan) > 0 || len(c.inFlightMessages) > 0 || len(c.deferredMessages) > 0 {
-		c.ctx.nsqd.logf("CHANNEL(%s): flushing %d memory %d in-flight %d deferred messages to backend",
+		c.ctx.rabbitgod.logf("CHANNEL(%s): flushing %d memory %d in-flight %d deferred messages to backend",
 			c.name, len(c.memoryMsgChan), len(c.inFlightMessages), len(c.deferredMessages))
 	}
 
@@ -212,7 +212,7 @@ func (c *Channel) flush() error {
 		case msg := <-c.memoryMsgChan:
 			err := writeMessageToBackend(&msgBuf, msg, c.backend)
 			if err != nil {
-				c.ctx.nsqd.logf("ERROR: failed to write message to backend - %s", err)
+				c.ctx.rabbitgod.logf("ERROR: failed to write message to backend - %s", err)
 			}
 		default:
 			goto finish
@@ -223,7 +223,7 @@ finish:
 	for _, msg := range c.inFlightMessages {
 		err := writeMessageToBackend(&msgBuf, msg, c.backend)
 		if err != nil {
-			c.ctx.nsqd.logf("ERROR: failed to write message to backend - %s", err)
+			c.ctx.rabbitgod.logf("ERROR: failed to write message to backend - %s", err)
 		}
 	}
 
@@ -231,7 +231,7 @@ finish:
 		msg := item.Value.(*Message)
 		err := writeMessageToBackend(&msgBuf, msg, c.backend)
 		if err != nil {
-			c.ctx.nsqd.logf("ERROR: failed to write message to backend - %s", err)
+			c.ctx.rabbitgod.logf("ERROR: failed to write message to backend - %s", err)
 		}
 	}
 
@@ -295,9 +295,9 @@ func (c *Channel) put(m *Message) error {
 		b := bufferPoolGet()
 		err := writeMessageToBackend(b, m, c.backend)
 		bufferPoolPut(b)
-		c.ctx.nsqd.SetHealth(err)
+		c.ctx.rabbitgod.SetHealth(err)
 		if err != nil {
-			c.ctx.nsqd.logf("CHANNEL(%s) ERROR: failed to write message to backend - %s",
+			c.ctx.rabbitgod.logf("CHANNEL(%s) ERROR: failed to write message to backend - %s",
 				c.name, err)
 			return err
 		}
@@ -320,9 +320,9 @@ func (c *Channel) TouchMessage(clientID int64, id MessageID, clientMsgTimeout ti
 
 	newTimeout := time.Now().Add(clientMsgTimeout)
 	if newTimeout.Sub(msg.deliveryTS) >=
-		c.ctx.nsqd.getOpts().MaxMsgTimeout {
+		c.ctx.rabbitgod.getOpts().MaxMsgTimeout {
 		// we would have gone over, set to the max
-		newTimeout = msg.deliveryTS.Add(c.ctx.nsqd.getOpts().MaxMsgTimeout)
+		newTimeout = msg.deliveryTS.Add(c.ctx.rabbitgod.getOpts().MaxMsgTimeout)
 	}
 
 	msg.pri = newTimeout.UnixNano()

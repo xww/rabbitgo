@@ -2,7 +2,7 @@ package rabbitgod
 
 import (
 	"crypto/tls"
-	"crypto/x509"
+	//"crypto/x509"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -117,7 +117,7 @@ func New(opts *Options) *RABBITGOD {
 		opts.StatsdPrefix = prefixWithHost
 	}
 
-	if opts.TLSClientAuthPolicy != "" && opts.TLSRequired == TLSNotRequired {
+	/*if opts.TLSClientAuthPolicy != "" && opts.TLSRequired == TLSNotRequired {
 		opts.TLSRequired = TLSRequired
 	}
 
@@ -130,7 +130,7 @@ func New(opts *Options) *RABBITGOD {
 		r.logf("FATAL: cannot require TLS client connections without TLS key and cert")
 		os.Exit(1)
 	}
-	r.tlsConfig = tlsConfig
+	r.tlsConfig = tlsConfig*/
 
 	r.logf(version.String("rabbitgod"))
 	r.logf("ID: %d", opts.ID)
@@ -205,7 +205,7 @@ func (n *RABBITGOD) GetStartTime() time.Time {
 
 func (n *RABBITGOD) Main() {
 	var httpListener net.Listener
-	var httpsListener net.Listener
+	//var httpsListener net.Listener
 
 	ctx := &context{n}
 
@@ -222,7 +222,7 @@ func (n *RABBITGOD) Main() {
 		protocol.TCPServer(n.tcpListener, tcpServer, n.getOpts().Logger)
 	})
 
-	if n.tlsConfig != nil && n.getOpts().HTTPSAddress != "" {
+	/*if n.tlsConfig != nil && n.getOpts().HTTPSAddress != "" {
 		httpsListener, err = tls.Listen("tcp", n.getOpts().HTTPSAddress, n.tlsConfig)
 		if err != nil {
 			n.logf("FATAL: listen (%s) failed - %s", n.getOpts().HTTPSAddress, err)
@@ -235,7 +235,7 @@ func (n *RABBITGOD) Main() {
 		n.waitGroup.Wrap(func() {
 			http_api.Serve(n.httpsListener, httpsServer, "HTTPS", n.getOpts().Logger)
 		})
-	}
+	}*/
 	httpListener, err = net.Listen("tcp", n.getOpts().HTTPAddress)
 	if err != nil {
 		n.logf("FATAL: listen (%s) failed - %s", n.getOpts().HTTPAddress, err)
@@ -244,7 +244,7 @@ func (n *RABBITGOD) Main() {
 	n.Lock()
 	n.httpListener = httpListener
 	n.Unlock()
-	httpServer := newHTTPServer(ctx, false, n.getOpts().TLSRequired == TLSRequired)
+	httpServer := newHTTPServer(ctx, false, false)
 	n.waitGroup.Wrap(func() {
 		http_api.Serve(n.httpListener, httpServer, "HTTP", n.getOpts().Logger)
 	})
@@ -661,7 +661,7 @@ exit:
 	refreshTicker.Stop()
 }
 
-func buildTLSConfig(opts *Options) (*tls.Config, error) {
+/*func buildTLSConfig(opts *Options) (*tls.Config, error) {
 	var tlsConfig *tls.Config
 
 	if opts.TLSCert == "" && opts.TLSKey == "" {
@@ -705,7 +705,7 @@ func buildTLSConfig(opts *Options) (*tls.Config, error) {
 	tlsConfig.BuildNameToCertificate()
 
 	return tlsConfig, nil
-}
+}*/
 
 func (n *RABBITGOD) IsAuthEnabled() bool {
 	return len(n.getOpts().AuthHTTPAddresses) != 0

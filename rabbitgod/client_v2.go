@@ -125,7 +125,7 @@ func newClientV2(id int64, conn net.Conn, ctx *context) *clientV2 {
 		OutputBufferSize:    defaultBufferSize,
 		OutputBufferTimeout: 250 * time.Millisecond,
 
-		MsgTimeout: ctx.nsqd.getOpts().MsgTimeout,
+		MsgTimeout: ctx.rabbitgod.getOpts().MsgTimeout,
 
 		// ReadyStateChan has a buffer of 1 to guarantee that in the event
 		// there is a race the state update is not lost
@@ -141,7 +141,7 @@ func newClientV2(id int64, conn net.Conn, ctx *context) *clientV2 {
 		IdentifyEventChan: make(chan identifyEvent, 1),
 
 		// heartbeats are client configurable but default to 30s
-		HeartbeatInterval: ctx.nsqd.getOpts().ClientTimeout / 2,
+		HeartbeatInterval: ctx.rabbitgod.getOpts().ClientTimeout / 2,
 	}
 	c.lenSlice = c.lenBuf[:]
 	return c
@@ -152,7 +152,7 @@ func (c *clientV2) String() string {
 }
 
 func (c *clientV2) Identify(data identifyDataV2) error {
-	c.ctx.nsqd.logf("[%s] IDENTIFY: %+v", c, data)
+	c.ctx.rabbitgod.logf("[%s] IDENTIFY: %+v", c, data)
 
 	c.metaLock.Lock()
 	c.ClientID = data.ClientID
@@ -304,8 +304,8 @@ func (c *clientV2) IsReadyForMessages() bool {
 	readyCount := atomic.LoadInt64(&c.ReadyCount)
 	inFlightCount := atomic.LoadInt64(&c.InFlightCount)
 
-	if c.ctx.nsqd.getOpts().Verbose {
-		c.ctx.nsqd.logf("[%s] state rdy: %4d inflt: %4d",
+	if c.ctx.rabbitgod.getOpts().Verbose {
+		c.ctx.rabbitgod.logf("[%s] state rdy: %4d inflt: %4d",
 			c, readyCount, inFlightCount)
 	}
 
@@ -383,7 +383,7 @@ func (c *clientV2) SetHeartbeatInterval(desiredInterval int) error {
 	case desiredInterval == 0:
 		// do nothing (use default)
 	case desiredInterval >= 1000 &&
-		desiredInterval <= int(c.ctx.nsqd.getOpts().MaxHeartbeatInterval/time.Millisecond):
+		desiredInterval <= int(c.ctx.rabbitgod.getOpts().MaxHeartbeatInterval/time.Millisecond):
 		c.HeartbeatInterval = time.Duration(desiredInterval) * time.Millisecond
 	default:
 		return fmt.Errorf("heartbeat interval (%d) is invalid", desiredInterval)
@@ -401,7 +401,7 @@ func (c *clientV2) SetOutputBufferSize(desiredSize int) error {
 		size = 1
 	case desiredSize == 0:
 		// do nothing (use default)
-	case desiredSize >= 64 && desiredSize <= int(c.ctx.nsqd.getOpts().MaxOutputBufferSize):
+	case desiredSize >= 64 && desiredSize <= int(c.ctx.rabbitgod.getOpts().MaxOutputBufferSize):
 		size = desiredSize
 	default:
 		return fmt.Errorf("output buffer size (%d) is invalid", desiredSize)
@@ -431,7 +431,7 @@ func (c *clientV2) SetOutputBufferTimeout(desiredTimeout int) error {
 	case desiredTimeout == 0:
 		// do nothing (use default)
 	case desiredTimeout >= 1 &&
-		desiredTimeout <= int(c.ctx.nsqd.getOpts().MaxOutputBufferTimeout/time.Millisecond):
+		desiredTimeout <= int(c.ctx.rabbitgod.getOpts().MaxOutputBufferTimeout/time.Millisecond):
 		c.OutputBufferTimeout = time.Duration(desiredTimeout) * time.Millisecond
 	default:
 		return fmt.Errorf("output buffer timeout (%d) is invalid", desiredTimeout)
@@ -456,7 +456,7 @@ func (c *clientV2) SetMsgTimeout(msgTimeout int) error {
 	case msgTimeout == 0:
 		// do nothing (use default)
 	case msgTimeout >= 1000 &&
-		msgTimeout <= int(c.ctx.nsqd.getOpts().MaxMsgTimeout/time.Millisecond):
+		msgTimeout <= int(c.ctx.rabbitgod.getOpts().MaxMsgTimeout/time.Millisecond):
 		c.MsgTimeout = time.Duration(msgTimeout) * time.Millisecond
 	default:
 		return fmt.Errorf("msg timeout (%d) is invalid", msgTimeout)
@@ -469,7 +469,7 @@ func (c *clientV2) UpgradeTLS() error {
 	c.writeLock.Lock()
 	defer c.writeLock.Unlock()
 
-	tlsConn := tls.Server(c.Conn, c.ctx.nsqd.tlsConfig)
+	tlsConn := tls.Server(c.Conn, c.ctx.rabbitgod.tlsConfig)
 	tlsConn.SetDeadline(time.Now().Add(5 * time.Second))
 	err := tlsConn.Handshake()
 	if err != nil {
@@ -554,9 +554,9 @@ func (c *clientV2) QueryAuthd() error {
 		tlsEnabled = "true"
 	}
 
-	authState, err := auth.QueryAnyAuthd(c.ctx.nsqd.getOpts().AuthHTTPAddresses,
-		remoteIP, tlsEnabled, c.AuthSecret, c.ctx.nsqd.getOpts().HTTPClientConnectTimeout,
-		c.ctx.nsqd.getOpts().HTTPClientRequestTimeout)
+	authState, err := auth.QueryAnyAuthd(c.ctx.rabbitgod.getOpts().AuthHTTPAddresses,
+		remoteIP, tlsEnabled, c.AuthSecret, c.ctx.rabbitgod.getOpts().HTTPClientConnectTimeout,
+		c.ctx.rabbitgod.getOpts().HTTPClientRequestTimeout)
 	if err != nil {
 		return err
 	}
