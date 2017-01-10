@@ -74,7 +74,7 @@ func (t *tlsMinVersionOption) String() string {
 	return strconv.FormatInt(int64(*t), 10)
 }
 
-func nsqdFlagSet(opts *rabbitgod.Options) *flag.FlagSet {
+func rabbitgoFlagSet(opts *rabbitgod.Options) *flag.FlagSet {
 	flagSet := flag.NewFlagSet("nsqd", flag.ExitOnError)
 
 	// basic options
@@ -195,7 +195,7 @@ func (p *program) Init(env svc.Environment) error {
 func (p *program) Start() error {
 	opts := rabbitgod.NewOptions()
 
-	flagSet := nsqdFlagSet(opts)
+	flagSet := rabbitgoFlagSet(opts)
 	flagSet.Parse(os.Args[1:])
 
 	rand.Seed(time.Now().UTC().UnixNano())

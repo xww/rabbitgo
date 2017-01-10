@@ -74,7 +74,7 @@ func New(opts *Options) *RABBITGOD {
 		dataPath = cwd
 	}
 
-	n := &RABBITGOD{
+	r := &RABBITGOD{
 		startTime:            time.Now(),
 		topicMap:             make(map[string]*Topic),
 		exitChan:             make(chan int),
@@ -83,22 +83,22 @@ func New(opts *Options) *RABBITGOD {
 		ci:                   clusterinfo.New(opts.Logger, http_api.NewClient(nil, opts.HTTPClientConnectTimeout, opts.HTTPClientRequestTimeout)),
 		dl:                   dirlock.New(dataPath),
 	}
-	n.swapOpts(opts)
-	n.errValue.Store(errStore{})
+	r.swapOpts(opts)
+	r.errValue.Store(errStore{})
 
-	err := n.dl.Lock()
+	err := r.dl.Lock()
 	if err != nil {
-		n.logf("FATAL: --data-path=%s in use (possibly by another instance of nsqd)", dataPath)
+		r.logf("FATAL: --data-path=%s in use (possibly by another instance of nsqd)", dataPath)
 		os.Exit(1)
 	}
 
 	if opts.MaxDeflateLevel < 1 || opts.MaxDeflateLevel > 9 {
-		n.logf("FATAL: --max-deflate-level must be [1,9]")
+		r.logf("FATAL: --max-deflate-level must be [1,9]")
 		os.Exit(1)
 	}
 
 	if opts.ID < 0 || opts.ID >= 1024 {
-		n.logf("FATAL: --worker-id must be [0,1024)")
+		r.logf("FATAL: --worker-id must be [0,1024)")
 		os.Exit(1)
 	}
 
@@ -106,7 +106,7 @@ func New(opts *Options) *RABBITGOD {
 		var port string
 		_, port, err = net.SplitHostPort(opts.HTTPAddress)
 		if err != nil {
-			n.logf("ERROR: failed to parse HTTP address (%s) - %s", opts.HTTPAddress, err)
+			r.logf("ERROR: failed to parse HTTP address (%s) - %s", opts.HTTPAddress, err)
 			os.Exit(1)
 		}
 		statsdHostKey := statsd.HostKey(net.JoinHostPort(opts.BroadcastAddress, port))
@@ -123,19 +123,19 @@ func New(opts *Options) *RABBITGOD {
 
 	tlsConfig, err := buildTLSConfig(opts)
 	if err != nil {
-		n.logf("FATAL: failed to build TLS config - %s", err)
+		r.logf("FATAL: failed to build TLS config - %s", err)
 		os.Exit(1)
 	}
 	if tlsConfig == nil && opts.TLSRequired != TLSNotRequired {
-		n.logf("FATAL: cannot require TLS client connections without TLS key and cert")
+		r.logf("FATAL: cannot require TLS client connections without TLS key and cert")
 		os.Exit(1)
 	}
-	n.tlsConfig = tlsConfig
+	r.tlsConfig = tlsConfig
 
-	n.logf(version.String("nsqd"))
-	n.logf("ID: %d", opts.ID)
+	r.logf(version.String("rabbitgod"))
+	r.logf("ID: %d", opts.ID)
 
-	return n
+	return r
 }
 
 func (n *RABBITGOD) logf(f string, args ...interface{}) {

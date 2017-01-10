@@ -1,5 +1,5 @@
 package rabbitgod
 
 type context struct {
-	nsqd *NSQD
+	rabbitgod *RABBITGOD
 }
