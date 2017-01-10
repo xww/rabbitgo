@@ -80,7 +80,7 @@ func nsqdFlagSet(opts *rabbitgod.Options) *flag.FlagSet {
 	// basic options
 	flagSet.Bool("version", false, "print version string")
 	flagSet.Bool("verbose", false, "enable verbose logging")
-	flagSet.String("config", "", "path to config file")
+	flagSet.String("config", "D:\\go\\gopath\\src\\github.com\\xww\\rabbitgo\\apps\\rabbitgod\\nsqd.cfg", "path to config file")
 	flagSet.Int64("worker-id", opts.ID, "unique seed for message ID generation (int) in range [0,4096) (will default to a hash of hostname)")
 
 	flagSet.String("https-address", opts.HTTPSAddress, "<addr>:<port> to listen on for HTTPS clients")
@@ -174,7 +174,7 @@ func (cfg config) Validate() {
 }
 
 type program struct {
-	nsqd *rabbitgod.NSQD
+	rabbitgod *rabbitgod.RABBITGOD
 }
 
 func main() {
@@ -213,25 +213,26 @@ func (p *program) Start() error {
 			log.Fatalf("ERROR: failed to load config file %s - %s", configFile, err.Error())
 		}
 	}
-	cfg.Validate()
+	//cfg.Validate()
 
 	options.Resolve(opts, flagSet, cfg)
-	nsqd := rabbitgod.New(opts)
+	rabbitgod := rabbitgod.New(opts)
 
-	nsqd.LoadMetadata()
-	err := nsqd.PersistMetadata()
+	/*加载元信息入队列交换机等信息
+	rabbitgod.LoadMetadata()
+	err := rabbitgod.PersistMetadata()
 	if err != nil {
 		log.Fatalf("ERROR: failed to persist metadata - %s", err.Error())
-	}
-	nsqd.Main()
+	}*/
+	rabbitgod.Main()
 
-	p.nsqd = nsqd
+	p.rabbitgod = rabbitgod
 	return nil
 }
 
 func (p *program) Stop() error {
-	if p.nsqd != nil {
-		p.nsqd.Exit()
+	if p.rabbitgod != nil {
+		p.rabbitgod.Exit()
 	}
 	return nil
 }

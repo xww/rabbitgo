@@ -35,7 +35,7 @@ type errStore struct {
 	err error
 }
 
-type NSQD struct {
+type RABBITGOD struct {
 	// 64bit atomic vars need to be first for proper alignment on 32bit platforms
 	clientIDSequence int64
 
@@ -67,14 +67,14 @@ type NSQD struct {
 	ci *clusterinfo.ClusterInfo
 }
 
-func New(opts *Options) *NSQD {
+func New(opts *Options) *RABBITGOD {
 	dataPath := opts.DataPath
 	if opts.DataPath == "" {
 		cwd, _ := os.Getwd()
 		dataPath = cwd
 	}
 
-	n := &NSQD{
+	n := &RABBITGOD{
 		startTime:            time.Now(),
 		topicMap:             make(map[string]*Topic),
 		exitChan:             make(chan int),
@@ -138,60 +138,60 @@ func New(opts *Options) *NSQD {
 	return n
 }
 
-func (n *NSQD) logf(f string, args ...interface{}) {
+func (n *RABBITGOD) logf(f string, args ...interface{}) {
 	if n.getOpts().Logger == nil {
 		return
 	}
 	n.getOpts().Logger.Output(2, fmt.Sprintf(f, args...))
 }
 
-func (n *NSQD) getOpts() *Options {
+func (n *RABBITGOD) getOpts() *Options {
 	return n.opts.Load().(*Options)
 }
 
-func (n *NSQD) swapOpts(opts *Options) {
+func (n *RABBITGOD) swapOpts(opts *Options) {
 	n.opts.Store(opts)
 }
 
-func (n *NSQD) triggerOptsNotification() {
+func (n *RABBITGOD) triggerOptsNotification() {
 	select {
 	case n.optsNotificationChan <- struct{}{}:
 	default:
 	}
 }
 
-func (n *NSQD) RealTCPAddr() *net.TCPAddr {
+func (n *RABBITGOD) RealTCPAddr() *net.TCPAddr {
 	n.RLock()
 	defer n.RUnlock()
 	return n.tcpListener.Addr().(*net.TCPAddr)
 }
 
-func (n *NSQD) RealHTTPAddr() *net.TCPAddr {
+func (n *RABBITGOD) RealHTTPAddr() *net.TCPAddr {
 	n.RLock()
 	defer n.RUnlock()
 	return n.httpListener.Addr().(*net.TCPAddr)
 }
 
-func (n *NSQD) RealHTTPSAddr() *net.TCPAddr {
+func (n *RABBITGOD) RealHTTPSAddr() *net.TCPAddr {
 	n.RLock()
 	defer n.RUnlock()
 	return n.httpsListener.Addr().(*net.TCPAddr)
 }
 
-func (n *NSQD) SetHealth(err error) {
+func (n *RABBITGOD) SetHealth(err error) {
 	n.errValue.Store(errStore{err: err})
 }
 
-func (n *NSQD) IsHealthy() bool {
+func (n *RABBITGOD) IsHealthy() bool {
 	return n.GetError() == nil
 }
 
-func (n *NSQD) GetError() error {
+func (n *RABBITGOD) GetError() error {
 	errValue := n.errValue.Load()
 	return errValue.(errStore).err
 }
 
-func (n *NSQD) GetHealth() string {
+func (n *RABBITGOD) GetHealth() string {
 	err := n.GetError()
 	if err != nil {
 		return fmt.Sprintf("NOK - %s", err)
@@ -199,11 +199,11 @@ func (n *NSQD) GetHealth() string {
 	return "OK"
 }
 
-func (n *NSQD) GetStartTime() time.Time {
+func (n *RABBITGOD) GetStartTime() time.Time {
 	return n.startTime
 }
 
-func (n *NSQD) Main() {
+func (n *RABBITGOD) Main() {
 	var httpListener net.Listener
 	var httpsListener net.Listener
 
@@ -268,7 +268,7 @@ type meta struct {
 	} `json:"topics"`
 }
 
-func (n *NSQD) LoadMetadata() {
+func (n *RABBITGOD) LoadMetadata() {
 	atomic.StoreInt32(&n.isLoading, 1)
 	defer atomic.StoreInt32(&n.isLoading, 0)
 
@@ -311,7 +311,7 @@ func (n *NSQD) LoadMetadata() {
 	}
 }
 
-func (n *NSQD) PersistMetadata() error {
+func (n *RABBITGOD) PersistMetadata() error {
 	// persist metadata about what topics/channels we have
 	// so that upon restart we can get back to the same state
 	fileName := fmt.Sprintf(path.Join(n.getOpts().DataPath, "nsqd.%d.dat"), n.getOpts().ID)
@@ -374,7 +374,7 @@ func (n *NSQD) PersistMetadata() error {
 	return nil
 }
 
-func (n *NSQD) Exit() {
+func (n *RABBITGOD) Exit() {
 	if n.tcpListener != nil {
 		n.tcpListener.Close()
 	}
@@ -406,7 +406,7 @@ func (n *NSQD) Exit() {
 
 // GetTopic performs a thread safe operation
 // to return a pointer to a Topic object (potentially new)
-func (n *NSQD) GetTopic(topicName string) *Topic {
+func (n *RABBITGOD) GetTopic(topicName string) *Topic {
 	// most likely, we already have this topic, so try read lock first.
 	n.RLock()
 	t, ok := n.topicMap[topicName]
@@ -471,7 +471,7 @@ func (n *NSQD) GetTopic(topicName string) *Topic {
 }
 
 // GetExistingTopic gets a topic only if it exists
-func (n *NSQD) GetExistingTopic(topicName string) (*Topic, error) {
+func (n *RABBITGOD) GetExistingTopic(topicName string) (*Topic, error) {
 	n.RLock()
 	defer n.RUnlock()
 	topic, ok := n.topicMap[topicName]
@@ -482,7 +482,7 @@ func (n *NSQD) GetExistingTopic(topicName string) (*Topic, error) {
 }
 
 // DeleteExistingTopic removes a topic only if it exists
-func (n *NSQD) DeleteExistingTopic(topicName string) error {
+func (n *RABBITGOD) DeleteExistingTopic(topicName string) error {
 	n.RLock()
 	topic, ok := n.topicMap[topicName]
 	if !ok {
@@ -506,7 +506,7 @@ func (n *NSQD) DeleteExistingTopic(topicName string) error {
 	return nil
 }
 
-func (n *NSQD) Notify(v interface{}) {
+func (n *RABBITGOD) Notify(v interface{}) {
 	// since the in-memory metadata is incomplete,
 	// should not persist metadata while loading it.
 	// nsqd will call `PersistMetadata` it after loading
@@ -531,7 +531,7 @@ func (n *NSQD) Notify(v interface{}) {
 }
 
 // channels returns a flat slice of all channels in all topics
-func (n *NSQD) channels() []*Channel {
+func (n *RABBITGOD) channels() []*Channel {
 	var channels []*Channel
 	n.RLock()
 	for _, t := range n.topicMap {
@@ -549,7 +549,7 @@ func (n *NSQD) channels() []*Channel {
 //
 // 	1 <= pool <= min(num * 0.25, QueueScanWorkerPoolMax)
 //
-func (n *NSQD) resizePool(num int, workCh chan *Channel, responseCh chan bool, closeCh chan int) {
+func (n *RABBITGOD) resizePool(num int, workCh chan *Channel, responseCh chan bool, closeCh chan int) {
 	idealPoolSize := int(float64(num) * 0.25)
 	if idealPoolSize < 1 {
 		idealPoolSize = 1
@@ -575,7 +575,7 @@ func (n *NSQD) resizePool(num int, workCh chan *Channel, responseCh chan bool, c
 
 // queueScanWorker receives work (in the form of a channel) from queueScanLoop
 // and processes the deferred and in-flight queues
-func (n *NSQD) queueScanWorker(workCh chan *Channel, responseCh chan bool, closeCh chan int) {
+func (n *RABBITGOD) queueScanWorker(workCh chan *Channel, responseCh chan bool, closeCh chan int) {
 	for {
 		select {
 		case c := <-workCh:
@@ -607,7 +607,7 @@ func (n *NSQD) queueScanWorker(workCh chan *Channel, responseCh chan bool, close
 //
 // If QueueScanDirtyPercent (default: 25%) of the selected channels were dirty,
 // the loop continues without sleep.
-func (n *NSQD) queueScanLoop() {
+func (n *RABBITGOD) queueScanLoop() {
 	workCh := make(chan *Channel, n.getOpts().QueueScanSelectionCount)
 	responseCh := make(chan bool, n.getOpts().QueueScanSelectionCount)
 	closeCh := make(chan int)
@@ -707,6 +707,6 @@ func buildTLSConfig(opts *Options) (*tls.Config, error) {
 	return tlsConfig, nil
 }
 
-func (n *NSQD) IsAuthEnabled() bool {
+func (n *RABBITGOD) IsAuthEnabled() bool {
 	return len(n.getOpts().AuthHTTPAddresses) != 0
 }

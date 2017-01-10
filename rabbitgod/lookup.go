@@ -13,7 +13,7 @@ import (
 	"github.com/xww/rabbitgo/internal/version"
 )
 
-func connectCallback(n *NSQD, hostname string, syncTopicChan chan *lookupPeer) func(*lookupPeer) {
+func connectCallback(n *RABBITGOD, hostname string, syncTopicChan chan *lookupPeer) func(*lookupPeer) {
 	return func(lp *lookupPeer) {
 		ci := make(map[string]interface{})
 		ci["version"] = version.Binary
@@ -50,7 +50,7 @@ func connectCallback(n *NSQD, hostname string, syncTopicChan chan *lookupPeer) f
 	}
 }
 
-func (n *NSQD) lookupLoop() {
+func (n *RABBITGOD) lookupLoop() {
 	var lookupPeers []*lookupPeer
 	var lookupAddrs []string
 	syncTopicChan := make(chan *lookupPeer)
@@ -182,7 +182,7 @@ func in(s string, lst []string) bool {
 	return false
 }
 
-func (n *NSQD) lookupdHTTPAddrs() []string {
+func (n *RABBITGOD) lookupdHTTPAddrs() []string {
 	var lookupHTTPAddrs []string
 	lookupPeers := n.lookupPeers.Load()
 	if lookupPeers == nil {
