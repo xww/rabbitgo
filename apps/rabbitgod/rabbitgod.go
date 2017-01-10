@@ -18,7 +18,7 @@ import (
 	"github.com/mreiferson/go-options"
 
 	"github.com/xww/rabbitgo/internal/app"
-	"github.com/xww/rabbitgo/nsqd"
+	"github.com/xww/rabbitgo/rabbitgod"
 	"github.com/xww/rabbitgo/internal/version"
 )
 
@@ -27,14 +27,14 @@ type tlsRequiredOption int
 func (t *tlsRequiredOption) Set(s string) error {
 	s = strings.ToLower(s)
 	if s == "tcp-https" {
-		*t = nsqd.TLSRequiredExceptHTTP
+		*t = rabbitgod.TLSRequiredExceptHTTP
 		return nil
 	}
 	required, err := strconv.ParseBool(s)
 	if required {
-		*t = nsqd.TLSRequired
+		*t = rabbitgod.TLSRequired
 	} else {
-		*t = nsqd.TLSNotRequired
+		*t = rabbitgod.TLSNotRequired
 	}
 	return err
 }
@@ -74,7 +74,7 @@ func (t *tlsMinVersionOption) String() string {
 	return strconv.FormatInt(int64(*t), 10)
 }
 
-func nsqdFlagSet(opts *nsqd.Options) *flag.FlagSet {
+func nsqdFlagSet(opts *rabbitgod.Options) *flag.FlagSet {
 	flagSet := flag.NewFlagSet("nsqd", flag.ExitOnError)
 
 	// basic options
@@ -174,7 +174,7 @@ func (cfg config) Validate() {
 }
 
 type program struct {
-	nsqd *nsqd.NSQD
+	nsqd *rabbitgod.NSQD
 }
 
 func main() {
@@ -193,7 +193,7 @@ func (p *program) Init(env svc.Environment) error {
 }
 
 func (p *program) Start() error {
-	opts := nsqd.NewOptions()
+	opts := rabbitgod.NewOptions()
 
 	flagSet := nsqdFlagSet(opts)
 	flagSet.Parse(os.Args[1:])
@@ -216,7 +216,7 @@ func (p *program) Start() error {
 	cfg.Validate()
 
 	options.Resolve(opts, flagSet, cfg)
-	nsqd := nsqd.New(opts)
+	nsqd := rabbitgod.New(opts)
 
 	nsqd.LoadMetadata()
 	err := nsqd.PersistMetadata()

@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/xww/rabbitgo/nsqd"
+	"github.com/xww/rabbitgo/rabbitgod"
 	"github.com/xww/rabbitgo/internal/test"
 	"github.com/xww/rabbitgo/internal/version"
 )
@@ -27,7 +27,7 @@ type ErrMessage struct {
 	Message string `json:"message"`
 }
 
-func bootstrapNSQCluster(t *testing.T) (string, []*nsqd.NSQD, *NSQLookupd) {
+func bootstrapNSQCluster(t *testing.T) (string, []*rabbitgod.NSQD, *NSQLookupd) {
 	lgr := test.NewTestLogger(t)
 
 	nsqlookupdOpts := NewOptions()
@@ -40,7 +40,7 @@ func bootstrapNSQCluster(t *testing.T) (string, []*nsqd.NSQD, *NSQLookupd) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	nsqdOpts := nsqd.NewOptions()
+	nsqdOpts := rabbitgod.NewOptions()
 	nsqdOpts.TCPAddress = "127.0.0.1:0"
 	nsqdOpts.HTTPAddress = "127.0.0.1:0"
 	nsqdOpts.BroadcastAddress = "127.0.0.1"
@@ -51,12 +51,12 @@ func bootstrapNSQCluster(t *testing.T) (string, []*nsqd.NSQD, *NSQLookupd) {
 		panic(err)
 	}
 	nsqdOpts.DataPath = tmpDir
-	nsqd1 := nsqd.New(nsqdOpts)
+	nsqd1 := rabbitgod.New(nsqdOpts)
 	go nsqd1.Main()
 
 	time.Sleep(100 * time.Millisecond)
 
-	return tmpDir, []*nsqd.NSQD{nsqd1}, nsqlookupd1
+	return tmpDir, []*rabbitgod.NSQD{nsqd1}, nsqlookupd1
 }
 
 func makeTopic(nsqlookupd *NSQLookupd, topicName string) {

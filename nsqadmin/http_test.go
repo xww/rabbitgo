@@ -17,7 +17,7 @@ import (
 	"github.com/xww/rabbitgo/internal/clusterinfo"
 	"github.com/xww/rabbitgo/internal/test"
 	"github.com/xww/rabbitgo/nsqlookupd"
-	"github.com/xww/rabbitgo/nsqd"
+	"github.com/xww/rabbitgo/rabbitgod"
 	"github.com/xww/rabbitgo/internal/version"
 )
 
@@ -56,7 +56,7 @@ func mustStartNSQLookupd(opts *nsqlookupd.Options) (*net.TCPAddr, *net.TCPAddr, 
 	return lookupd.RealTCPAddr(), lookupd.RealHTTPAddr(), lookupd
 }
 
-func bootstrapNSQCluster(t *testing.T) (string, []*nsqd.NSQD, []*nsqlookupd.NSQLookupd, *NSQAdmin) {
+func bootstrapNSQCluster(t *testing.T) (string, []*rabbitgod.NSQD, []*nsqlookupd.NSQLookupd, *NSQAdmin) {
 	lgr := test.NewTestLogger(t)
 
 	nsqlookupdOpts := nsqlookupd.NewOptions()
@@ -69,7 +69,7 @@ func bootstrapNSQCluster(t *testing.T) (string, []*nsqd.NSQD, []*nsqlookupd.NSQL
 
 	time.Sleep(100 * time.Millisecond)
 
-	nsqdOpts := nsqd.NewOptions()
+	nsqdOpts := rabbitgod.NewOptions()
 	nsqdOpts.TCPAddress = "127.0.0.1:0"
 	nsqdOpts.HTTPAddress = "127.0.0.1:0"
 	nsqdOpts.BroadcastAddress = "127.0.0.1"
@@ -80,7 +80,7 @@ func bootstrapNSQCluster(t *testing.T) (string, []*nsqd.NSQD, []*nsqlookupd.NSQL
 		panic(err)
 	}
 	nsqdOpts.DataPath = tmpDir
-	nsqd1 := nsqd.New(nsqdOpts)
+	nsqd1 := rabbitgod.New(nsqdOpts)
 	go nsqd1.Main()
 
 	nsqadminOpts := NewOptions()
@@ -92,7 +92,7 @@ func bootstrapNSQCluster(t *testing.T) (string, []*nsqd.NSQD, []*nsqlookupd.NSQL
 
 	time.Sleep(100 * time.Millisecond)
 
-	return tmpDir, []*nsqd.NSQD{nsqd1}, []*nsqlookupd.NSQLookupd{nsqlookupd1}, nsqadmin1
+	return tmpDir, []*rabbitgod.NSQD{nsqd1}, []*nsqlookupd.NSQLookupd{nsqlookupd1}, nsqadmin1
 }
 
 func TestPing(t *testing.T) {
@@ -473,7 +473,7 @@ func TestHTTPEmptyTopicPOST(t *testing.T) {
 
 	topicName := "test_empty_topic_post" + strconv.Itoa(int(time.Now().Unix()))
 	topic := nsqds[0].GetTopic(topicName)
-	topic.PutMessage(nsqd.NewMessage(nsqd.MessageID{}, []byte("1234")))
+	topic.PutMessage(rabbitgod.NewMessage(rabbitgod.MessageID{}, []byte("1234")))
 	test.Equal(t, int64(1), topic.Depth())
 	time.Sleep(100 * time.Millisecond)
 
@@ -502,7 +502,7 @@ func TestHTTPEmptyChannelPOST(t *testing.T) {
 	topicName := "test_empty_channel_post" + strconv.Itoa(int(time.Now().Unix()))
 	topic := nsqds[0].GetTopic(topicName)
 	channel := topic.GetChannel("ch")
-	channel.PutMessage(nsqd.NewMessage(nsqd.MessageID{}, []byte("1234")))
+	channel.PutMessage(rabbitgod.NewMessage(rabbitgod.MessageID{}, []byte("1234")))
 
 	time.Sleep(100 * time.Millisecond)
 	test.Equal(t, int64(1), channel.Depth())
