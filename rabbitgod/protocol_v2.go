@@ -36,20 +36,20 @@ type protocolV2 struct {
 
 func (p *protocolV2) IOLoop(conn net.Conn) error {
 	var err error
-	var line []byte
+	//var line []byte
 	var zeroTime time.Time
 
 	clientID := atomic.AddInt64(&p.ctx.rabbitgod.clientIDSequence, 1)
 	client := newClientV2(clientID, conn, p.ctx)
 
-	// synchronize the startup of messagePump in order
+	/*// synchronize the startup of messagePump in order
 	// to guarantee that it gets a chance to initialize
 	// goroutine local state derived from client attributes
 	// and avoid a potential race with IDENTIFY (where a client
 	// could have changed or disabled said attributes)
 	messagePumpStartedChan := make(chan bool)
 	go p.messagePump(client, messagePumpStartedChan)
-	<-messagePumpStartedChan
+	<-messagePumpStartedChan*/
 
 	for {
 		if client.HeartbeatInterval > 0 {
@@ -60,10 +60,28 @@ func (p *protocolV2) IOLoop(conn net.Conn) error {
 
 		// ReadSlice does not allocate new space for the data each request
 		// ie. the returned slice is only valid until the next call to it
-		line, err = client.Reader.ReadSlice('\n')
-		fmt.Println(line)
-		fmt.Printf("%s ",line)
+		b := make([]byte, 300)
+		fmt.Println("before read from socket")
+		n, err := client.Reader.Read(b)
+		fmt.Println("after read from socket")
 		if err != nil {
+			fmt.Println(err)
+		}
+		//line, err = client.Reader.ReadSlice('\n')
+		fmt.Println(n)
+		fmt.Println(b)
+
+		cp := new(protocol.CmdProtocol)
+		cp.Type = int32(binary.BigEndian.Uint32(b[0:4]))
+		cp.Version = binary.BigEndian.Uint32(b[4:8])
+		cp.Length = binary.BigEndian.Uint32(b[8:12])
+		cp.Token = binary.BigEndian.Uint32(b[12:16])
+		cp.MsgContent = string(b[16:23])
+		cp.CheckSum = binary.BigEndian.Uint32(b[23:27])
+		fmt.Println(cp)
+
+
+		/*if err != nil {
 			if err == io.EOF {
 				err = nil
 			} else {
@@ -116,7 +134,7 @@ func (p *protocolV2) IOLoop(conn net.Conn) error {
 				err = fmt.Errorf("failed to send response - %s", err)
 				break
 			}
-		}
+		}*/
 	}
 
 	p.ctx.rabbitgod.logf("PROTOCOL(V2): [%s] exiting ioloop", client)
